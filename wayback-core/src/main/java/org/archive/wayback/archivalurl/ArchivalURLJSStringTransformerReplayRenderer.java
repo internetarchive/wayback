@@ -102,6 +102,7 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 		context.setOutputCharset("utf-8");
 		context.setOutputStream(baos);
 		context.setJspExec(jspExec);
+		context.setInJS(true); //for https://webarchive.jira.com/browse/ARI-3762
 		
 		String policy = result.getOraclePolicy();
 		

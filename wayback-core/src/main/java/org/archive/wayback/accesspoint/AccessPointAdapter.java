@@ -375,4 +375,10 @@ public class AccessPointAdapter extends AccessPoint {
 	public String getWarcFileHeader() {
 		return composite.getWarcFileHeader();
 	}
+	
+	@Override
+	public String getWaybackUrl() {
+		return composite.getWaybackUrl();
+	}
+	
 }

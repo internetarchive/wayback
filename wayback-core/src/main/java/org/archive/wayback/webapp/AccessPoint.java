@@ -189,6 +189,8 @@ implements ShutdownListener {
 	private int maxRedirectAttempts = 0;
 	
 	private boolean fixedEmbeds = false;
+	
+	private String waybackUrl = null;
 
 	public void init() {
 		checkAccessPointAware(collection,exception,query,parser,replay,
@@ -1800,4 +1802,13 @@ implements ShutdownListener {
 	public void setMementoHandler(MementoHandler mementoHandler) {
 		this.mementoHandler = mementoHandler;
 	}
+	
+	public String getWaybackUrl() {
+		return waybackUrl;
+	}
+
+	public void setWaybackUrl(String waybackUrl) {
+		this.waybackUrl = waybackUrl;
+	}
+	
 }

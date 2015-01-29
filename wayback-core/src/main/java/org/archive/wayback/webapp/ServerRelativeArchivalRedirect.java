@@ -20,9 +20,11 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -86,8 +88,23 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		if (secondSlash == -1) return null;
 		
 		String collection = path.substring(0, secondSlash);
-		collection = modifyCollection(collection);
+		collection = modifyCollection(collection); 
 
+		//determine if collection is not numeric. if not numeric, get the collection from the cookie (if it exists)
+		if (!collection.isEmpty() && collection.length() > 1 &&
+				!Character.isDigit(collection.charAt(1))) {
+			
+			if (httpRequest.getCookies() != null) {
+				for (Cookie cookie: httpRequest.getCookies()) {
+					if ("wayback.collectionid".equals(cookie.getName())) {
+						collection = "/" + cookie.getValue();
+						break;
+					}
+				}
+			}
+			
+		}
+		
 		String remainder = path.substring(secondSlash + 1);
 		int thirdSlash = remainder.indexOf('/');
 		if (thirdSlash == -1) return null;
@@ -95,12 +112,38 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		String datespec = remainder.substring(0, thirdSlash);
 		if (!datespec.isEmpty() &&
 				!Character.isDigit(datespec.charAt(0))) {
+			
 			datespec = null;
+			
+			if (httpRequest.getCookies() != null) {
+				for (Cookie cookie: httpRequest.getCookies()) {
+					if ("wayback.timestamp".equals(cookie.getName())) {
+						datespec = cookie.getValue();
+						break;
+					}
+				}
+				
+			}
 		}
 
 		String url = remainder.substring(thirdSlash + 1);
-		url = UrlOperations.fixupScheme(url);
-		url = ArchiveUtils.addImpliedHttpIfNecessary(url);
+
+		boolean urlHasBeenFixed = false;
+		
+		if (httpRequest.getCookies() != null) {
+			for (Cookie cookie : httpRequest.getCookies()) {
+				if ("wayback.archivalhost".equals(cookie.getName())) {
+					url = URLDecoder.decode(cookie.getValue(), "UTF-8");
+					urlHasBeenFixed = true;
+					break;
+				}
+			}
+		}
+
+		if (!urlHasBeenFixed) {
+			url = UrlOperations.fixupScheme(url);
+			url = ArchiveUtils.addImpliedHttpIfNecessary(url);
+		}
 
 		String thisPath = httpRequest.getRequestURI();
 		String queryString = httpRequest.getQueryString();

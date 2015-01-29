@@ -367,7 +367,7 @@ public class UrlOperations {
 		}
 		return url;
 	}
-
+	
 	/**
 	 * Extract userinfo from the absolute URL argument, that is, "username@", or
 	 * "username:password@" if present.

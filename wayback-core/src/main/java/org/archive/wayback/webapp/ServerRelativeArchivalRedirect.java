@@ -153,13 +153,21 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 				!Character.isDigit(datespec.charAt(0))) {
 			datespec = null;
 		}
-
+		
+		String thisPath = httpRequest.getRequestURI();
+		String queryString = httpRequest.getQueryString();
+		if (queryString != null) {
+			thisPath += "?" + queryString;
+		}
+		
 		String url = path.substring(tsSlash + 1);
 		url = UrlOperations.fixupScheme(url);
 		url = ArchiveUtils.addImpliedHttpIfNecessary(url);
 
+		String resolved = UrlOperations.resolveUrl(url, thisPath);
+		
 		final String root = refuri.getScheme() + "://" + authority;
-		return new ArchivalUrlRef(root, collection, datespec, url);
+		return new ArchivalUrlRef(root, collection, datespec, resolved);
 	}
 
 	private String handleRequestWithCollection(HttpServletRequest httpRequest,

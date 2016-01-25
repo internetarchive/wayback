@@ -61,6 +61,7 @@ public class ArchivalUrlCSSReplayRenderer extends TextReplayRenderer {
 	 */
 	public ArchivalUrlCSSReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		super(httpHeaderProcessor);
+		overrideContentMimeType = "text/css";
 	}
 
 	/* (non-Javadoc)

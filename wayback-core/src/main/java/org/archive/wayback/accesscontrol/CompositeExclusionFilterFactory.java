@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import org.archive.cdxserver.auth.AuthToken;
+import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.resourceindex.filters.CompositeExclusionFilter;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
@@ -33,7 +35,7 @@ import org.archive.wayback.resourceindex.filters.ExclusionFilter;
  *
  * @author brad
  */
-public class CompositeExclusionFilterFactory implements ContextExclusionFilterFactory {
+public class CompositeExclusionFilterFactory implements AuthContextExclusionFilterFactory {
 
 	private static final Logger LOGGER = Logger
 		.getLogger(CompositeExclusionFilterFactory.class.getName());
@@ -47,8 +49,13 @@ public class CompositeExclusionFilterFactory implements ContextExclusionFilterFa
 		factories.add(factory);
 	}
 
-	protected static ExclusionFilter getInstance(ExclusionFilterFactory factory, CollectionContext context) {
-		if (factory instanceof ContextExclusionFilterFactory) {
+	protected static ExclusionFilter getInstance(
+			ExclusionFilterFactory factory, CollectionContext context,
+			AuthToken subject) throws AccessControlException {
+		if (factory instanceof AuthContextExclusionFilterFactory) {
+			return ((AuthContextExclusionFilterFactory)factory)
+				.getExclusionFilter(context, subject);
+		} else if (factory instanceof ContextExclusionFilterFactory) {
 			return ((ContextExclusionFilterFactory)factory).getExclusionFilter(context);
 		} else {
 			return factory.get();
@@ -56,10 +63,11 @@ public class CompositeExclusionFilterFactory implements ContextExclusionFilterFa
 	}
 
 	@Override
-	public ExclusionFilter getExclusionFilter(CollectionContext context) {
+	public ExclusionFilter getExclusionFilter(CollectionContext context,
+			AuthToken subject) throws AccessControlException {
 		CompositeExclusionFilter filter = new CompositeExclusionFilter();
 		for (ExclusionFilterFactory factory : factories) {
-			ExclusionFilter memberFilter = getInstance(factory, context);
+			ExclusionFilter memberFilter = getInstance(factory, context, subject);
 			if (memberFilter != null) {
 				filter.addComponent(memberFilter);
 			} else {
@@ -67,6 +75,15 @@ public class CompositeExclusionFilterFactory implements ContextExclusionFilterFa
 			}
 		}
 		return filter;
+	}
+
+	@Override
+	public ExclusionFilter getExclusionFilter(CollectionContext context) {
+		try {
+			return getExclusionFilter(context, null);
+		} catch (AccessControlException ex) {
+			return null;
+		}
 	}
 
 	/*

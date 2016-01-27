@@ -35,6 +35,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.cdxserver.auth.AuthToken;
 import org.archive.format.gzip.zipnum.ZipNumBlockLoader;
 import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
@@ -46,6 +47,7 @@ import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.UrlCanonicalizer;
+import org.archive.wayback.accesscontrol.AuthContextExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.CollectionContext;
 import org.archive.wayback.accesscontrol.ContextExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
@@ -371,15 +373,19 @@ public class AccessPoint extends AbstractRequestHandler implements
 
 	/**
 	 * Return new instance of {@link ExclusionFilter} instance for this AccessPoint.
+	 * @param subject client information (may be {@code null})
 	 * @throws AccessControlException If it cannot instantiate ExclusionFilter when
 	 * it's supposed to (i.e. configured but failed to complete because of network
 	 * error etc.)
 	 */
-	public ExclusionFilter createExclusionFilter() throws AccessControlException {
+	public ExclusionFilter createExclusionFilter(AuthToken subject) throws AccessControlException {
 		ExclusionFilterFactory factory = getExclusionFactory();
 		if (factory != null) {
 			ExclusionFilter exclusionFilter = null;
-			if (factory instanceof ContextExclusionFilterFactory) {
+			if (factory instanceof AuthContextExclusionFilterFactory) {
+				// allows null return value
+				return ((AuthContextExclusionFilterFactory)factory).getExclusionFilter(this, subject);
+			} else if (factory instanceof ContextExclusionFilterFactory) {
 				exclusionFilter = ((ContextExclusionFilterFactory)factory).getExclusionFilter(this);
 			} else {
 				exclusionFilter = factory.get();
@@ -391,6 +397,10 @@ public class AccessPoint extends AbstractRequestHandler implements
 			return exclusionFilter;
 		}
 		return null;
+	}
+	
+	public ExclusionFilter createExclusionFilter() throws AccessControlException {
+		return createExclusionFilter(null);
 	}
 
 	public RewriteDirector getRewriteDirector() {

@@ -3,7 +3,6 @@ package org.archive.cdxserver;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -17,10 +16,6 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class BaseCDXServer implements InitializingBean {
-	
-	public final static String CDX_AUTH_TOKEN = "cdx_auth_token";
-
-	protected String cookieAuthToken = CDX_AUTH_TOKEN;
 	
 	protected UrlSurtRangeComputer urlSurtRangeComputer;
 	protected WaybackURLKeyMaker canonicalizer = null;
@@ -37,14 +32,6 @@ public class BaseCDXServer implements InitializingBean {
 		this.surtMode = surtMode;
 	}
 	
-	public String getCookieAuthToken() {
-		return cookieAuthToken;
-	}
-
-	public void setCookieAuthToken(String cookieAuthToken) {
-		this.cookieAuthToken = cookieAuthToken;
-	}
-
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (authChecker == null) {
@@ -109,24 +96,18 @@ public class BaseCDXServer implements InitializingBean {
         this.ajaxAccessControl = ajaxAccessControl;
     }
     
+    /**
+     * Create a subject object based on {@code request}.
+     * <p>This method now delegates to {@link AuthChecker}.</p>
+     * @param request HTTP request
+     * @return subject object
+     * @deprecated 2016-01-12 Use {@link AuthChecker#authenticate(HttpServletRequest, AuthToken)}
+     */
     protected AuthToken createAuthToken(HttpServletRequest request)
     {
-    	return new AuthToken(extractAuthToken(request, cookieAuthToken));
+		AuthToken subject = new AuthToken();
+		authChecker.authenticate(request, subject);
+		return subject;
     }
     
-    protected String extractAuthToken(HttpServletRequest request, String cookieAuthToken) {
-		Cookie[] cookies = request.getCookies();
-
-		if (cookies == null) {
-			return null;
-		}
-
-		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals(cookieAuthToken)) {
-				return cookie.getValue();
-			}
-		}
-
-		return null;
-	}
 }

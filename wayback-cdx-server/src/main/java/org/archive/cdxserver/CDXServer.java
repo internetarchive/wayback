@@ -194,7 +194,9 @@ public class CDXServer extends BaseCDXServer {
 				responseWriter = new PlainTextWriter(response, gzip);
 			}
 
-			AuthToken authToken = super.createAuthToken(request);
+			//AuthToken authToken = super.createAuthToken(request);
+			AuthToken authToken = new AuthToken();
+			authChecker.authenticate(request, authToken);
 
 			getCdx(query, authToken, responseWriter);
 
@@ -227,11 +229,8 @@ public class CDXServer extends BaseCDXServer {
 				}
 			}
 
-			CDXAccessFilter accessChecker = null;
-
-			if (!authChecker.isAllUrlAccessAllowed(authToken)) {
-				accessChecker = authChecker.createAccessFilter(authToken);
-			}
+			CDXAccessFilter accessChecker = authChecker
+				.createAccessFilter(authToken);
 
 //			// For now, don't support domain or host output w/o key as access check is too slow
 //			if (query.matchType == MatchType.domain || query.matchType == MatchType.host) {
@@ -324,7 +323,8 @@ public class CDXServer extends BaseCDXServer {
 			return null;
 		}
 
-		boolean allAccess = authChecker.isAllUrlAccessAllowed(authToken);
+		//boolean allAccess = authChecker.isAllUrlAccessAllowed(authToken);
+		boolean allAccess = authToken.isAllUrlAccessAllowed();
 
 		if ((query.pageSize <= 0) ||
 				((query.pageSize > maxPageSize) && !allAccess)) {
@@ -497,7 +497,7 @@ public class CDXServer extends BaseCDXServer {
 
 		FieldSplitFormat outputFields = null;
 
-		if (!authChecker.isAllCdxFieldAccessAllowed(authToken)) {
+		if (!authToken.isAllCdxFieldAccessAllowed()) {
 			outputFields = this.authChecker.getPublicCdxFormat();
 		}
 

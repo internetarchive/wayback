@@ -2,6 +2,9 @@ package org.archive.cdxserver.auth;
 
 import java.util.List;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+
 import org.archive.format.cdx.FieldSplitFormat;
 
 /**
@@ -21,6 +24,49 @@ public abstract class PrivTokenAuthChecker implements AuthChecker {
 	protected List<String> ignoreRobotsAccessTokens;
 	protected List<String> allCdxFieldsAccessTokens;
 
+	public final static String CDX_AUTH_TOKEN = "cdx_auth_token";
+
+	protected String cookieAuthToken = CDX_AUTH_TOKEN;
+
+	@Override
+	public void authenticate(HttpServletRequest request, AuthToken subject) {
+	    String token = extractAuthToken(request);
+	    if (token != null) {
+			subject.setAuthToken(token);
+			subject.setAllUrlAccessAllowed(isAllowed(subject, allUrlAccessTokens));
+			subject.setAllCdxFieldAccessAllowed(isAllowed(subject, allCdxFieldsAccessTokens));
+			subject.setIgnoreRobots(isAllowed(subject, ignoreRobotsAccessTokens));
+	    }
+	}
+
+	public String getCookieAuthToken() {
+		return cookieAuthToken;
+	}
+
+	/**
+	 * Name of the authentication cookie.
+	 * @param cookieAuthToken
+	 */
+	public void setCookieAuthToken(String cookieAuthToken) {
+		this.cookieAuthToken = cookieAuthToken;
+	}
+
+    protected String extractAuthToken(HttpServletRequest request) {
+		Cookie[] cookies = request.getCookies();
+
+		if (cookies == null) {
+			return null;
+		}
+
+		for (Cookie cookie : cookies) {
+			if (cookie.getName().equals(cookieAuthToken)) {
+				return cookie.getValue();
+			}
+		}
+
+		return null;
+	}
+
 	protected boolean isAllowed(AuthToken auth, List<String> allowVector) {
 		if (auth == null || auth.authToken == null || allowVector == null) {
 			return false;
@@ -33,21 +79,21 @@ public abstract class PrivTokenAuthChecker implements AuthChecker {
 		return false;
 	}
 
-	@Override
-	public boolean isAllUrlAccessAllowed(AuthToken auth) {
-		if (auth.cachedAllUrlAllow == null) {
-			auth.cachedAllUrlAllow = isAllowed(auth, allUrlAccessTokens);
-		}
-		return auth.cachedAllUrlAllow;
-	}
-
-	@Override
-	public boolean isAllCdxFieldAccessAllowed(AuthToken auth) {
-		if (auth.cachedAllCdxAllow == null) {
-			auth.cachedAllCdxAllow = isAllowed(auth, allCdxFieldsAccessTokens);
-		}
-		return auth.cachedAllCdxAllow;
-	}
+//	@Override
+//	public boolean isAllUrlAccessAllowed(AuthToken auth) {
+//		if (auth.cachedAllUrlAllow == null) {
+//			auth.cachedAllUrlAllow = isAllowed(auth, allUrlAccessTokens);
+//		}
+//		return auth.cachedAllUrlAllow;
+//	}
+//
+//	@Override
+//	public boolean isAllCdxFieldAccessAllowed(AuthToken auth) {
+//		if (auth.cachedAllCdxAllow == null) {
+//			auth.cachedAllCdxAllow = isAllowed(auth, allCdxFieldsAccessTokens);
+//		}
+//		return auth.cachedAllCdxAllow;
+//	}
 
 	@Override
 	public String getPublicCdxFields() {

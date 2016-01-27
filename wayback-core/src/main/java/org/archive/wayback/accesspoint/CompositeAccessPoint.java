@@ -91,6 +91,10 @@ public class CompositeAccessPoint extends AccessPoint {
 		return (status == Status.ConfigHandled);
 	}
 
+	protected AccessPointAdapter getNewAccessPointAdapter(CompositeAccessPoint baseAccessPoint, AccessPointConfig config) {
+		return new AccessPointAdapter(baseAccessPoint, config);
+	}
+	
 	protected Status handleRequest(String realAccessPoint,
 			HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -103,7 +107,7 @@ public class CompositeAccessPoint extends AccessPoint {
 				.getAccessPointConfigs().get(realAccessPoint);
 
 			if (config != null) {
-				adapter = new AccessPointAdapter(this, config);
+				adapter = getNewAccessPointAdapter(this, config);
 				accessPointCache.put(realAccessPoint, adapter);
 			}
 		}

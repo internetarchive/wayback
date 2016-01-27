@@ -14,6 +14,7 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
 import org.archive.cdxserver.auth.AuthToken;
+import org.archive.cdxserver.auth.PrivTokenAuthChecker;
 import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.HttpCDXWriter;
 import org.archive.cdxserver.writer.JsonWriter;
@@ -374,6 +375,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	}
 	
 	// TODO: move this method to its own class for remote CDX server access.
+	// It might be better to model remote CDX Server as a CDXInputSource.
 	protected void remoteCdxServerQuery(String urlkey, CDXQuery query,
 			AuthToken authToken, CDXToSearchResultWriter resultWriter)
 			throws IOException, AccessControlException {
@@ -425,7 +427,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 					cookie = remoteAuthCookie;
 				}
 
-				reader.setCookie(CDXServer.CDX_AUTH_TOKEN + "=" + cookie);
+				reader.setCookie(PrivTokenAuthChecker.CDX_AUTH_TOKEN + "=" + cookie);
 			}
 
 			reader.setSaveErrHeader(HttpCDXWriter.RUNTIME_ERROR_HEADER);
@@ -642,6 +644,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			// TODO: need to support the same access control as CDXServer API.
 			// (See BaseCDXServer#createAuthToken(). Further refactoring is necessary.
 			AuthToken authToken = new APContextAuthToken(wbRequest.getAccessPoint());
+			cdxServer.getAuthChecker().authenticate(request, authToken);
 			try {
 				cdxServer.getCdx(query, authToken, cdxWriter);
 			} catch (Exception ex) {

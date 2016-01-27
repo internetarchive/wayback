@@ -74,8 +74,9 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 	public static class TestCDXServer extends CDXServer {
 		private ICDXServer delegate;
 
-		public TestCDXServer(ICDXServer delegate) {
+		public TestCDXServer(ICDXServer delegate) throws Exception {
 			this.delegate = delegate;
+			afterPropertiesSet();
 		}
 		@Override
 		public CDXLine findLastCapture(String url, String digest,
@@ -688,10 +689,8 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		AuthToken authToken = authTokenCapture.getValue();
 		// required for pulling scope and exclusion filters from AccessPoint
 		assertTrue(authToken instanceof APContextAuthToken);
-		assertFalse(authToken.isIgnoreRobots());
-		// AuthToken.cachedAllCdxAllow has no getter; Only accessible through
-		// PrivTokenAuthChecker. Weird design.
-		assertFalse(new WaybackAuthChecker().isAllCdxFieldAccessAllowed(authToken));
+		assertTrue(authToken.isIgnoreRobots());
+		assertTrue(authToken.isAllCdxFieldAccessAllowed());
 	}
 
 	// WaybackAuthChecker wants RedisRobotExclusionFilterFactory for
@@ -805,7 +804,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			HttpServletRequest httpRequest = EasyMock.createNiceMock(HttpServletRequest.class);
 			EasyMock.expect(httpRequest.getParameter("url")).andStubReturn("http://exmaple.com/style.css");
 			EasyMock.expect(httpRequest.getCookies()).andStubReturn(
-				new Cookie[] { new Cookie(cdxServer.getCookieAuthToken(),
+				new Cookie[] { new Cookie(authChecker.getCookieAuthToken(),
 					IGNORE_ROBOTS_TOKEN) });
 
 			HttpServletResponse httpResponse = EasyMock.createMock(HttpServletResponse.class);

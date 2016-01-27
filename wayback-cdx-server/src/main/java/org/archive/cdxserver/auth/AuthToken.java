@@ -1,11 +1,18 @@
 package org.archive.cdxserver.auth;
 
-
+/**
+ * AuthToken represents client.
+ * It has (currently) single identity (or no identity), and
+ * set of permissions granted to the client.
+ */
 public class AuthToken {
 	
-	final String authToken;
-	Boolean cachedAllUrlAllow = null;
-	Boolean cachedAllCdxAllow = null;
+	String authToken;
+
+	boolean allUrlAccessAllowed = false;
+	boolean allCdxFieldAccessAllowed = false;
+//	Boolean cachedAllUrlAllow = null;
+//	Boolean cachedAllCdxAllow = null;
 	boolean ignoreRobots = false;
 	
 	public AuthToken()
@@ -17,11 +24,36 @@ public class AuthToken {
 	{
 		this.authToken = authToken;
 	}
+
+	public String getAuthToken() {
+		return authToken;
+	}
+
+	protected void setAuthToken(String authToken) {
+		this.authToken = authToken;
+	}
+
+	public boolean isAllUrlAccessAllowed() {
+		return allUrlAccessAllowed;
+	}
+
+	public void setAllUrlAccessAllowed(boolean allUrlAccessAllowed) {
+		this.allUrlAccessAllowed = allUrlAccessAllowed;
+	}
+
+	/**
+	 * @deprecated 2016-01-12 call {@link #setAllCdxFieldAccessAllowed(boolean)} with {@code true}
+	 */
+	public void setAllCdxFieldsAllow() {
+		setAllCdxFieldAccessAllowed(true);
+	}
 	
-	//TODO: is this good way of doing so
-	public void setAllCdxFieldsAllow()
-	{
-		cachedAllCdxAllow = true;
+	public void setAllCdxFieldAccessAllowed(boolean allCdxFieldAccessAllowed) {
+		this.allCdxFieldAccessAllowed = allCdxFieldAccessAllowed;
+	}
+
+	public boolean isAllCdxFieldAccessAllowed() {
+		return allCdxFieldAccessAllowed;
 	}
 
 	public boolean isIgnoreRobots() {

@@ -71,6 +71,8 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	
 	public static String ORIG_ENCODING = "X-Archive-Orig-Encoding";
 
+	protected String overrideContentMimeType = null;
+
 	private String guessedCharsetHeader = GUESSED_CHARSET_HEADER;
 	private List<String> jspInserts = null;
 	private HttpHeaderProcessor httpHeaderProcessor;
@@ -155,6 +157,9 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		// let's try explicitly setting it to what we used:
 		httpResponse.setCharacterEncoding(page.getCharSet());
 
+        if (overrideContentMimeType != null && !overrideContentMimeType.isEmpty()) {
+            httpResponse.setContentType(overrideContentMimeType);
+        }
 		page.writeToOutputStream(httpResponse.getOutputStream());
 	}
 
@@ -206,6 +211,22 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	public static Resource decodeResource(Resource resource) throws IOException {
 		return decodeResource(resource, resource);
 	}
+
+    /**
+     * @return the String HTTP Header 'Content-Type' used in overriding the archived
+     * value during playback.
+     */
+    public String getOverrideContentMimeType() {
+        return overrideContentMimeType;
+    }
+
+    /**
+     * @param overrideContentMimeType the String HTTP Header 'Content-Type' used to
+     * override the archived value.
+     */
+    public void setOverrideContentMimeType(String overrideContentMimeType) {
+        this.overrideContentMimeType = overrideContentMimeType;
+    }
 
 	/**
 	 * return gzip-decoding wrapper Resource if Resource has {@code Content-Encoding: gzip}.

@@ -16,15 +16,16 @@ public class WaybackAuthChecker extends PrivTokenAuthChecker {
 	protected CDXFilter prefixFilter = null;
 
 	public CDXAccessFilter createAccessFilter(AuthToken token) {
+		if (token.isAllUrlAccessAllowed())
+			return null;
+
 		ExclusionFilter adminFilter = null;
 		if (adminExclusions != null) {
 			adminFilter = adminExclusions.get();
 		}
 
 		ExclusionFilter robotsFilter = null;
-		if (robotsExclusions != null &&
-				!isAllowed(token, ignoreRobotsAccessTokens) &&
-				!token.isIgnoreRobots()) {
+		if (robotsExclusions != null && !token.isIgnoreRobots()) {
 			robotsFilter = robotsExclusions.get();
 		}
 

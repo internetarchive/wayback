@@ -43,6 +43,7 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
+import org.archive.wayback.replay.CompositeResource;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 import org.archive.wayback.util.url.KeyMakerUrlCanonicalizer;
@@ -521,11 +522,23 @@ public class AccessPointTest extends TestCase {
 			Resource headersResource, Resource payloadResource,
 			CaptureSearchResults results) throws ServletException, IOException,
 			WaybackException {
-		EasyMock.expect(
-			replay.getRenderer(wbRequest, capture, headersResource,
-				payloadResource)).andReturn(replayRenderer);
-		replayRenderer.renderResource(httpRequest, httpResponse, wbRequest,
-			capture, headersResource, cut.getUriConverter(), results);
+		if (headersResource == payloadResource) {
+			EasyMock.expect(
+				replay.getRenderer(wbRequest, capture, headersResource))
+				.andReturn(replayRenderer);
+			replayRenderer.renderResource(httpRequest, httpResponse, wbRequest,
+				capture, headersResource, cut.getUriConverter(), results);
+		} else {
+			EasyMock.expect(
+				replay.getRenderer(EasyMock.same(wbRequest),
+					EasyMock.same(capture),
+					EasyMock.isA(CompositeResource.class))).andReturn(
+				replayRenderer);
+			replayRenderer.renderResource(EasyMock.same(httpRequest),
+				EasyMock.same(httpResponse), EasyMock.same(wbRequest),
+				EasyMock.same(capture), EasyMock.isA(CompositeResource.class),
+				EasyMock.same(cut.getUriConverter()), EasyMock.same(results));
+		}
 	}
 
 	/**
@@ -1392,12 +1405,11 @@ public class AccessPointTest extends TestCase {
 		CaptureSearchResults results = setupCaptures(0, payloadResource);
 		CaptureSearchResult closest = results.getClosest();
 
-		//expectRendering(closest, payloadResource, payloadResource, results);
-		EasyMock.expect(
-			replay.getRenderer(wbRequest, closest, payloadResource,
-				payloadResource)).andReturn(replayRenderer);
+		EasyMock
+			.expect(replay.getRenderer(wbRequest, closest, payloadResource))
+			.andReturn(replayRenderer);
 		replayRenderer.renderResource(httpRequest, httpResponse, wbRequest,
-			closest, payloadResource, payloadResource, decorated, results);
+			closest, payloadResource, decorated, results);
 
 		EasyMock.replay(httpRequest, httpResponse, resourceIndex,
 			resourceStore, replay, replayRenderer, decorated);

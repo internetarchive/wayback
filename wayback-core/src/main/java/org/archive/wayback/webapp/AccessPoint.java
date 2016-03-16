@@ -76,6 +76,7 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.DefaultMementoHandler;
 import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
+import org.archive.wayback.replay.CompositeResource;
 import org.archive.wayback.replay.DefaultReplayCaptureSelector;
 import org.archive.wayback.replay.ReplayCaptureSelector;
 import org.archive.wayback.replay.html.RewriteDirector;
@@ -815,8 +816,7 @@ public class AccessPoint extends AbstractRequestHandler implements
 			//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
 			//}
 
-			Resource httpHeadersResource = null;
-			Resource payloadResource = null;
+			Resource resource = null;
 			boolean isRevisit = false;
 
 			try {
@@ -872,17 +872,15 @@ public class AccessPoint extends AbstractRequestHandler implements
 						closest.setOffset(closest.getDuplicatePayloadOffset());
 
 						// See that this is successful
-						httpHeadersResource = resourceStore.retrieveResource(closest);
+						resource = resourceStore.retrieveResource(closest);
 
 						// Hmm, since this is a revisit it should not redirect -- was: if both headers and payload are from a different timestamp, redirect to that timestamp
 //						if (!closest.getCaptureTimestamp().equals(closest.getDuplicateDigestStoredTimestamp())) {
 //							throwRedirect(wbRequest, httpResponse, captureResults, closest.getDuplicateDigestStoredTimestamp(), closest.getOriginalUrl(), closest.getHttpCode());
 //						}
 
-						payloadResource = httpHeadersResource;
-
 					} else {
-						httpHeadersResource = resourceStore.retrieveResource(closest);
+						Resource httpHeadersResource = resourceStore.retrieveResource(closest);
 
 						CaptureSearchResult payloadLocation = retrievePayloadForIdenticalContentRevisit(wbRequest, httpHeadersResource, closest);
 
@@ -890,24 +888,19 @@ public class AccessPoint extends AbstractRequestHandler implements
 							throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString(), 404);
 						}
 
-						payloadResource = resourceStore.retrieveResource(payloadLocation);
+						Resource payloadResource = resourceStore.retrieveResource(payloadLocation);
 
-						// If zero length old-style revisit with no headers, then must use payloadResource as headersResource
-						if (httpHeadersResource.getRecordLength() <= 0) {
-							httpHeadersResource.close();
-							httpHeadersResource = payloadResource;
-						}
+						resource = new CompositeResource(httpHeadersResource, payloadResource);
 					}
 				} else {
-					httpHeadersResource = resourceStore.retrieveResource(closest);
-					payloadResource = httpHeadersResource;
+					resource = resourceStore.retrieveResource(closest);
 				}
 
 				// Ensure that we are not self-redirecting!
 				// If the status is a redirect, check that the location or url date's are different from the current request
 				// Otherwise, replay the previous matched capture.
 				// This chain is unlikely to go past one previous capture, but is possible
-				if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
+				if (isSelfRedirect(resource, closest, wbRequest, requestURL)) {
 					LOGGER.info("Self-Redirect: Skipping " + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl());
 					//closest = findNextClosest(closest, captureResults, requestMS);
 					closest = captureSelector.next();
@@ -921,7 +914,7 @@ public class AccessPoint extends AbstractRequestHandler implements
 				p.retrieved();
 
 				ReplayRenderer renderer =
-						getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
+						getReplay().getRenderer(wbRequest, closest, resource);
 
 				if (this.isEnableWarcFileHeader() && (warcFileHeader != null)) {
 					if (isRevisit && (closest.getDuplicatePayloadFile() != null)) {
@@ -959,7 +952,7 @@ public class AccessPoint extends AbstractRequestHandler implements
 				}
 
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
-					closest, httpHeadersResource, payloadResource, uriConverter, captureResults);
+					closest, resource, uriConverter, captureResults);
 
 				p.rendered();
 				p.write(wbRequest.getReplayTimestamp() + " " +
@@ -1027,7 +1020,13 @@ public class AccessPoint extends AbstractRequestHandler implements
 					throw scre;
 				}
 			} finally {
-				closeResources(payloadResource, httpHeadersResource);
+				if (resource != null) {
+					try {
+						resource.close();
+					} catch (IOException e) {
+						LOGGER.warning(e.toString());
+					}
+				}
 			}
 		}
 	}

@@ -125,7 +125,7 @@ public class ArchivalUrlCSSReplayRendererTest extends TestCase {
         
         EasyMock.replay(response, uriConverter);
         
-        cut.renderResource(null, response, wbRequest, result, payloadResource, payloadResource, uriConverter, null);
+        cut.renderResource(null, response, wbRequest, result, payloadResource, uriConverter, null);
         
         EasyMock.verify(response, uriConverter);
         

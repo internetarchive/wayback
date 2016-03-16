@@ -98,32 +98,34 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource,
-			ResultURIConverter uriConverter, CaptureSearchResults results)
-					throws ServletException, IOException, BadContentException {
-		renderResource(httpRequest, httpResponse, wbRequest, result, resource, resource, uriConverter, results);
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException,
+			IOException, BadContentException {
+		final Resource resource = httpHeadersResource == payloadResource ? payloadResource
+				: new CompositeResource(httpHeadersResource, payloadResource);
+		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
+			uriConverter, results);
 	}
 
 	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource httpHeadersResource,
-			Resource payloadResource, ResultURIConverter uriConverter,
-			CaptureSearchResults results) throws ServletException,
-			IOException, BadContentException {
-
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
+					throws ServletException, IOException, BadContentException {
 		// Decode resource (such as if gzip encoded)
-		Resource decodedResource = decodeResource(httpHeadersResource, payloadResource);
+		Resource decodedResource = decodeResource(resource);
 		
 		ReplayParseContext context = ReplayParseContext.create(uriConverter, wbRequest, null, result, false);
 
-		HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
+		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				httpHeadersResource, context, httpHeaderProcessor);
+				resource, context, httpHeaderProcessor);
 
-		String charSet = charsetDetector.getCharset(httpHeadersResource,
-				decodedResource, wbRequest);
+		String charSet = charsetDetector.getCharset(resource, decodedResource,
+			wbRequest);
 
 		ResultURIConverter pageConverter = uriConverter;
 		// this feature was meant for using special ResultURIConverter for rewriting XML, but
@@ -213,8 +215,48 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		this.guessedCharsetHeader = guessedCharsetHeader;
 	}
 
+	/**
+	 * return gzip-decoding wrapper Resource if Resource has {@code Content-Encoding: gzip}.
+	 * return {@code resource} as-is otherwise.
+	 * <p>if resource's content is gzip-compressed (i.e. {@code Content-Encoding} is "{@code gzip}"),
+	 * return a wrapping Resource that returns decoded content.</p>
+	 * <p>As a side-effect, {@code Content-Encoding} and
+	 * {@code Transfer-Encoding} headers are removed from {@code resource} (this happens only when
+	 * {@code resource} is gzip-compressed.).</p>
+	 * <p>TODO: XArchiveHttpHeaderProcessor also does HTTP header removal. Check for refactoring case.</p>
+	 * @param resource Resource to read HTTP headers from.
+	 * @return either wrapping decoder Resource or {@code resource}
+	 * @throws IOException
+	 */
 	public static Resource decodeResource(Resource resource) throws IOException {
-		return decodeResource(resource, resource);
+		// Content-Encoding may differ between headersResource and
+		// payloadResource. We use Content-Encoding of payloadResource,
+		// as we're reading content from it. Then update headersResource,
+		// as we're rendering headers from headersResource.
+		String encoding = resource.getContentEncoding();
+		if (encoding != null) {
+			if (encoding.toLowerCase().equals(GzipDecodingResource.GZIP)) {
+				// if headersResource (revisit) has Content-Encoding, set it aside.
+				Map<String, String> revHeaders = resource.getHttpHeaders();
+				String revEncoding = HttpHeaderOperation.getHeaderValue(
+					revHeaders, HttpHeaderOperation.HTTP_CONTENT_ENCODING);
+				if (revEncoding != null) {
+					revHeaders.put(ORIG_ENCODING, encoding);
+					HttpHeaderOperation.removeHeader(revHeaders,
+						HttpHeaderOperation.HTTP_CONTENT_ENCODING);
+				}
+
+				if (HttpHeaderOperation.isChunkEncoded(revHeaders)) {
+					HttpHeaderOperation.removeHeader(revHeaders,
+						HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER);
+				}
+
+				return new GzipDecodingResource(resource);
+			}
+
+			// TODO: check for other encodings?
+		}
+		return resource;
 	}
 
     /**
@@ -242,12 +284,15 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	 * {@code Transfer-Encoding} headers are removed from {@code headersResource} (this happens only when
 	 * {@code headerResoruce} is gzip-compressed.). It is assumed that {@code headerResource} and
 	 * {@code payloadResource} are captures of identical response content.</p>
+	 * <p>WARNING: this method does not work as intended with CompositeResource, whose
+	 * {@code getHttpHeaders()} method returns HTTP headers from revisit record.</p>
 	 * <p>TODO: XArchiveHttpHeaderProcessor also does HTTP header removal. Check for refactoring case.</p>
 	 * @param headersResource Resource to read HTTP headers from.
 	 * @param payloadResource Resource to read content from (same as {@code headerResource} for regular captures,
 	 * 	different Resource if headersResource is a revisit record.)
 	 * @return
 	 * @throws IOException
+	 * @deprecated 2016-03-08 use single-Resource version with CompositeResource
 	 */
 	public static Resource decodeResource(Resource headersResource,
 			Resource payloadResource) throws IOException {

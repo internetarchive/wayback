@@ -36,6 +36,7 @@ import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.proxy.ProxyHttpsResultURIConverter;
+import org.archive.wayback.replay.CompositeResource;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.JSPExecutor;
@@ -89,16 +90,6 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		this.httpHeaderProcessor = httpHeaderProcessor;
 	}
 
-	// assume this is only called for appropriate doc types: html
-	public void renderResource(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource,
-			ResultURIConverter uriConverter, CaptureSearchResults results)
-					throws ServletException, IOException, WaybackException {
-		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
-				resource, uriConverter, results);
-	}
-
 	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
@@ -106,8 +97,19 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 			Resource payloadResource, ResultURIConverter uriConverter,
 			CaptureSearchResults results) throws ServletException, IOException,
 			WaybackException {
+		final Resource resource = httpHeadersResource == payloadResource ? payloadResource
+				: new CompositeResource(httpHeadersResource, payloadResource);
+		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
+			uriConverter, results);
+	}
 
-		Resource decodedResource = TextReplayRenderer.decodeResource(httpHeadersResource, payloadResource);
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
+					throws ServletException, IOException, WaybackException {
+		// TODO: wrong
+		Resource decodedResource = TextReplayRenderer.decodeResource(resource);
 
 		// The URL of the page, for resolving in-page relative URLs: 
 //		URL url = null;
@@ -119,7 +121,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 //			throw new IOException(e1.getMessage());
 //		}
 		// determine the character set used to encode the document bytes:
-		String charSet = charsetDetector.getCharset(httpHeadersResource, decodedResource, wbRequest);
+		String charSet = charsetDetector.getCharset(resource, decodedResource, wbRequest);
 		
 		// set up the context:
 		final ReplayParseContext context = ReplayParseContext.create(
@@ -165,11 +167,11 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 
 
 		// copy the HTTP response code:
-		HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
+		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 
 		// transform the original headers according to our headerProcessor:
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				httpHeadersResource, context, httpHeaderProcessor);
+				resource, context, httpHeaderProcessor);
 
 		// prepare several objects for the parse:
 

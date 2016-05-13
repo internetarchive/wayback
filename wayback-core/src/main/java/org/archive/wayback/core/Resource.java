@@ -47,6 +47,12 @@ import org.apache.commons.httpclient.ChunkedInputStream;
  * @author Brad Tofel
  */
 public abstract class Resource extends InputStream {
+	
+	/**
+	 * Upper-case header field name for {@code Content-Encoding}.
+	 * For use with {@link #getHeader(String)}
+	 */
+	public static final String HTTP_CONTENT_ENCODING = "CONTENT-ENCODING";
 
 	private InputStream is;
 
@@ -113,6 +119,20 @@ public abstract class Resource extends InputStream {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Return <i>content-encoding</i> of the payload.
+	 * <p>
+	 * Currently meaningful for HTTP response resource only,
+	 * and returns the value of HTTP {@code Content-Encoding}.
+	 * Composite resource would override this method to return
+	 * a value from appropriate member Resource.
+	 * </p>
+	 * @return content-encoding header field value
+	 */
+	public String getContentEncoding() {
+		return getHeader(HTTP_CONTENT_ENCODING);
 	}
 
 	private void validate() throws IOException {

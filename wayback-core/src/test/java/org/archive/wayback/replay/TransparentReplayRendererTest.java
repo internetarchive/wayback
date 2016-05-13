@@ -96,7 +96,6 @@ public class TransparentReplayRendererTest extends TestCase {
         WARCRecord rec = ar.get(0);
         Resource payloadResource = new WarcResource(rec, ar);
         payloadResource.parseHeaders();
-        Resource headersResource = payloadResource;
         
         TestServletOutputStream servletOutput = new TestServletOutputStream();
         response.setStatus(200);
@@ -110,7 +109,7 @@ public class TransparentReplayRendererTest extends TestCase {
         EasyMock.replay(response);
 
         cut.renderResource(request, response, wbRequest, result,
-                headersResource, payloadResource, uriConverter, results);
+                payloadResource, uriConverter, results);
         
         EasyMock.verify(response);
         byte[] content = servletOutput.getBytes();
@@ -135,7 +134,6 @@ public class TransparentReplayRendererTest extends TestCase {
         WARCRecord rec = ar.get(0);
         Resource payloadResource = new WarcResource(rec, ar);
         payloadResource.parseHeaders();
-        Resource headersResource = payloadResource;
         
         TestServletOutputStream servletOutput = new TestServletOutputStream();
         response.setStatus(200);
@@ -150,7 +148,7 @@ public class TransparentReplayRendererTest extends TestCase {
         EasyMock.replay(response);
 
         cut.renderResource(request, response, wbRequest, result,
-                headersResource, payloadResource, uriConverter, results);
+                payloadResource, uriConverter, results);
         
         EasyMock.verify(response);
         
@@ -193,7 +191,7 @@ public class TransparentReplayRendererTest extends TestCase {
         EasyMock.replay(response, uriConverter);
 
         cut.renderResource(request, response, wbRequest, result,
-                payloadResource, payloadResource, uriConverter, results);
+                payloadResource, uriConverter, results);
         
         EasyMock.verify(response, uriConverter);
 
@@ -229,7 +227,6 @@ public class TransparentReplayRendererTest extends TestCase {
         WARCRecord rec = ar.get(0);
         Resource payloadResource = new WarcResource(rec, ar);
         payloadResource.parseHeaders();
-        Resource headersResource = payloadResource;
 
         TestServletOutputStream servletOutput = new TestServletOutputStream();
         // expectations
@@ -246,8 +243,8 @@ public class TransparentReplayRendererTest extends TestCase {
 
         // creating separate test object to use IdentityHttpHeaderProcessor
         TransparentReplayRenderer cut2 = new TransparentReplayRenderer(new IdentityHttpHeaderProcessor());
-        cut2.renderResource(request, response, wbRequest, result,
-        		headersResource, payloadResource, uriConverter, results);
+		cut2.renderResource(request, response, wbRequest, result,
+			payloadResource, uriConverter, results);
 
         EasyMock.verify(response);
 

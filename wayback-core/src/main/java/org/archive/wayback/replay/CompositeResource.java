@@ -83,6 +83,14 @@ public class CompositeResource extends Resource {
 		else
 			return headersResource.getHeader(headerName);
 	}
+	/**
+	 * Returns {@code Content-Encoding} header field value
+	 * from the original record.
+	 */
+	@Override
+	public String getContentEncoding() {
+		return payloadResource.getHeader(HTTP_CONTENT_ENCODING);
+	}
 	@Override
 	public void setChunkedEncoding() throws IOException {
 		payloadResource.setChunkedEncoding();

@@ -90,6 +90,7 @@ public interface ReplayRenderer {
 	 * @throws IOException per usual
 	 * @throws WaybackException if Wayback data specific, anticipated exceptions
 	 *         occur
+	 * @deprecated 2016-03-08 Use one-Resource version above with CompositeResource.
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,

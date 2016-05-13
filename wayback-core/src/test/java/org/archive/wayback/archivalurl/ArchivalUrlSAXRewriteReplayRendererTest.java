@@ -17,6 +17,7 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.CompositeResource;
 import org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.TransparentReplayRendererTest.TestServletOutputStream;
@@ -155,7 +156,7 @@ public class ArchivalUrlSAXRewriteReplayRendererTest extends TestCase {
 
         EasyMock.replay(nodeHandler, response, uriConverter);
 
-        cut.renderResource(null, response, wbRequest, result, payloadResource, payloadResource, uriConverter, null);
+        cut.renderResource(null, response, wbRequest, result, payloadResource, uriConverter, null);
 
         EasyMock.verify(nodeHandler, response, uriConverter);
 
@@ -198,7 +199,8 @@ public class ArchivalUrlSAXRewriteReplayRendererTest extends TestCase {
 
         EasyMock.replay(nodeHandler, response, uriConverter);
 
-        cut.renderResource(null, response, wbRequest, result, headerResource, payloadResource, uriConverter, null);
+        Resource compResource = new CompositeResource(headerResource, payloadResource);
+        cut.renderResource(null, response, wbRequest, result, compResource, uriConverter, null);
 
         EasyMock.verify(nodeHandler, response, uriConverter);
 
@@ -280,7 +282,7 @@ public class ArchivalUrlSAXRewriteReplayRendererTest extends TestCase {
 
         EasyMock.replay(nodeHandler, response, uriConverter);
 
-        cut.renderResource(null, response, wbRequest, result, payloadResource, payloadResource, uriConverter, null);
+        cut.renderResource(null, response, wbRequest, result, payloadResource, uriConverter, null);
 
         EasyMock.verify(nodeHandler, response, uriConverter);
 
@@ -319,7 +321,7 @@ public class ArchivalUrlSAXRewriteReplayRendererTest extends TestCase {
         // !!! KEY SETTING OF THIS TEST !!!
         wbRequest.setFrameWrapperContext(true);
 
-        cut.renderResource(null, response, wbRequest, result, payloadResource, payloadResource, uriConverter, null);
+        cut.renderResource(null, response, wbRequest, result, payloadResource, uriConverter, null);
 
         EasyMock.verify(nodeHandler, response, uriConverter);
 

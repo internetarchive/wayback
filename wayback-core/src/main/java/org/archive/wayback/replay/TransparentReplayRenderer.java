@@ -62,27 +62,29 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource,
-			ResultURIConverter uriConverter, CaptureSearchResults results)
-					throws ServletException, IOException, BadContentException {
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException, IOException,
+			BadContentException {
+		final Resource resource = httpHeadersResource == payloadResource ? payloadResource
+				: new CompositeResource(httpHeadersResource, payloadResource);
 		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
-				resource, uriConverter, results);
+			uriConverter, results);
 	}
 
 	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource httpHeadersResource,
-			Resource payloadResource, ResultURIConverter uriConverter,
-			CaptureSearchResults results) throws ServletException, IOException,
-			BadContentException {
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
+					throws ServletException, IOException, BadContentException {
 
-		HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
+		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 
 		ReplayParseContext context = ReplayParseContext.create(uriConverter, wbRequest, null, result, false);
 
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				httpHeadersResource, context, httpHeaderProcessor);
+				resource, context, httpHeaderProcessor);
 
 		// HACKHACK: getContentLength() may not find the original content length
 		// if a HttpHeaderProcessor has mangled it too badly. Should this
@@ -111,7 +113,7 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 		OutputStream os = httpResponse.getOutputStream();
 		byte[] buffer = new byte[BUFFER_SIZE];
 		long total = 0;
-		for (int r = -1; (r = payloadResource.read(buffer, 0, BUFFER_SIZE)) != -1;) {
+		for (int r = -1; (r = resource.read(buffer, 0, BUFFER_SIZE)) != -1;) {
 			os.write(buffer, 0, r);
 			total += r;
 		}

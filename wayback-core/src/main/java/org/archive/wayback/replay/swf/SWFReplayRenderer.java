@@ -44,6 +44,7 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.replay.CompositeResource;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.html.ReplayParseContext;
@@ -78,15 +79,6 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		this.httpHeaderProcessor = httpHeaderProcessor;
 	}
 
-	public void renderResource(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource,
-			ResultURIConverter uriConverter, CaptureSearchResults results)
-					throws ServletException, IOException, WaybackException {
-		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
-				resource, uriConverter, results);
-	}
-
 	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
@@ -94,17 +86,27 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			Resource payloadResource, ResultURIConverter uriConverter,
 			CaptureSearchResults results) throws ServletException, IOException,
 			WaybackException {
+		final Resource resource = httpHeadersResource == payloadResource ? payloadResource
+				: new CompositeResource(httpHeadersResource, payloadResource);
+		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
+			uriConverter, results);
+	}
 
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
+					throws ServletException, IOException, WaybackException {
 		try {
 
 			// copy HTTP response code:
-			HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
+			HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 
 			ReplayParseContext context = ReplayParseContext.create(uriConverter, wbRequest, null, result, false);
 
 			// load and process original headers:
 			Map<String, String> headers = HttpHeaderOperation.processHeaders(
-					httpHeadersResource, context, httpHeaderProcessor);
+					resource, context, httpHeaderProcessor);
 
 			// The URL of the resource, for resolving embedded relative URLs:
 			URL url = null;
@@ -122,7 +124,7 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			Movie movie = getRobustMovie(RobustMovieDecoder.DECODE_RULE_NULLS);
 
 			try {
-				movie.decodeFromStream(payloadResource);
+				movie.decodeFromStream(resource);
 			} catch (DataFormatException e1) {
 				throw new BadContentException(e1.getLocalizedMessage());
 			}

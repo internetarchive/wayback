@@ -157,7 +157,7 @@ public class ArchivalURLJSStringTransformerReplayRendererTest extends TestCase {
 		
 		EasyMock.replay(response);
 		
-		renderer.renderResource(request, response, wbRequest, result, payloadResource, payloadResource, proxyURIConverter, null);
+		renderer.renderResource(request, response, wbRequest, result, payloadResource, proxyURIConverter, null);
 		
 		String out = servletOutput.getString();
 		assertEquals("servlet output", expected, out);

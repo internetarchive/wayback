@@ -43,6 +43,10 @@ public class RewritingStringTransformer implements StringTransformer {
 			return input;
 		}
 
+                if (input.startsWith("javascript:")) {
+                        rpContext.setInScriptText(true);
+                }
+
 		if (!rpContext.isInScriptText() && !rpContext.isInJS()) {
 			return input;
 		}

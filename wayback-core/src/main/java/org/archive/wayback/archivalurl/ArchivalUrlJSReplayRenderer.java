@@ -86,6 +86,10 @@ public class ArchivalUrlJSReplayRenderer extends TextReplayRenderer {
 		return pattern.pattern();
 	}
 
+	public Pattern getPattern() {
+        	return pattern;
+    	}
+
 	protected void updatePage(TextDocument page,
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
 			WaybackRequest wbRequest, CaptureSearchResult result,

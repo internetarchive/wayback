@@ -55,7 +55,7 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 	 */
 	public static final String[] DEFAULT_UNTRUSTFUL_MIMETYPES = {
 		// Found many occurrence of "www/unknown" and "*/*" in IA's archive.
-		"text/html", "www/unknown", "*/"
+		"text/html", "www/unknown", "*/", "application/http"
 	};
 	private String[] untrustfulMimeTypes = DEFAULT_UNTRUSTFUL_MIMETYPES;
 

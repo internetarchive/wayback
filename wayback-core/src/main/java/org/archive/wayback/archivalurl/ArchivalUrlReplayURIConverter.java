@@ -73,7 +73,7 @@ public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, Replay
 		if (replayURIPrefix == null || replayURIPrefix.isEmpty())
 			return replayURIPrefix;
 		if (style == URLStyle.ABSOLUTE)
-			return replayURIPrefix;
+			return getReplayURIPrefix();
 
 		HandyURL url = null;
 		try {
@@ -95,7 +95,7 @@ public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, Replay
 			}
 		} else {
 			// Assuming style == FULL
-			return replayURIPrefix;
+			return getReplayURIPrefix();
 		}
 	}
 

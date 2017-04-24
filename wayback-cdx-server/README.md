@@ -82,6 +82,10 @@ At this time, the following cdx fields are publicly available:
 
   `["urlkey","timestamp","original","mimetype","statuscode","digest","length"]`
   
+To get the HTML of the capture, the URL is formatted as follows: `http://web.archive.org/web/</TIMESTAMP>/</URL>`
+
+To get the original page back (without the Wayback Machine rewriting URLs on the page to point into the Archive), you can suffix the timestamp with `id_`, as follows: `http://web.archive.org/web/</TIMESTAMP>id_/</URL>`
+  
 It is possible to customize the [Field Order](#field-order) as well.
 
 The the **url=** value should be [url encoded](http://en.wikipedia.org/wiki/Percent-encoding) if the url itself contains a query.

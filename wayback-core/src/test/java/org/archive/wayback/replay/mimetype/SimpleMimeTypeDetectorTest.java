@@ -148,6 +148,7 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 	public void testContentSniffing_Binary() throws Exception {
 		assertEquals("application/pdf", detectMimeType("bin/1.pdf", "unk"));
 		assertEquals("image/png", detectMimeType("bin/2.png", "text/html"));
+		assertEquals("application/wasm", detectMimeType("bin/4.wasm", "application/octet-stream; charset=utf-8"));
 	}
 
 	/**

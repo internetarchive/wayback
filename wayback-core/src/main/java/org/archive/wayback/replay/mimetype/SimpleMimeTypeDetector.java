@@ -129,6 +129,8 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 			} else if (bytes[1] == 0x01) {
 				// TTF?
 				return BINARY_FILE;
+			} else if (bytes[1] == 'a' && bytes[2] == 's' && bytes[3] == 'm') {
+				return "application/wasm";
 			}
 			break;
 		case 0x01:

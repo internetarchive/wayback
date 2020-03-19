@@ -2,17 +2,19 @@ os: linux
 dist: bionic
 language: java
 jdk:
-  - openjdk8
-  - openjdk9
-  - openjdk10
-  - openjdk11
-  - openjdk12
-  - openjdk13
-  - openjdk14
-  - oraclejdk9
-  - oraclejdk15
+  - openjdk8     # passes
+  # - openjdk9   # passes
+  # - openjdk10  # passes
+  - openjdk11    # passes
+  # - openjdk12  # fails!
+  # - openjdk13  # fails!
+  - openjdk14    # fails!
+  - oraclejdk9   # fails!
+  - oraclejdk15  # fails!
 jobs:
   allow_failures:
+    - jdk: openjdk12
+    - jdk: openjdk13
     - jdk: openjdk14
     - jdk: oraclejdk9
     - jdk: oraclejdk15

@@ -1,9 +1,15 @@
 language: java
 jdk:
-  - oraclejdk9
-  - oraclejdk15
   - openjdk8
   - openjdk11
+  - openjdk14
+  - oraclejdk9
+  - oraclejdk15
+jobs:
+  allow_failures:
+    jdk:
+      - oraclejdk9
+      - oraclejdk15
 branches:
   only:
     - master

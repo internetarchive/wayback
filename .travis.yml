@@ -4,6 +4,7 @@ jdk:
   # no longer available
   #- oraclejdk7
   - openjdk7
+  - openjdk11
 branches:
   only:
     - master

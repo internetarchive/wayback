@@ -400,7 +400,7 @@ public class CDXServer extends BaseCDXServer {
 		params.setReverse(query.isReverse());
 
 		if (!query.resumeKey.isEmpty()) {
-			searchKey = URLDecoder.decode(query.resumeKey, "UTF-8");
+			searchKey = query.resumeKey;
             startEndUrl[0] = searchKey;
 //            int lastSpace = startEndUrl[0].lastIndexOf(' ');
 //            if (lastSpace > 0) {

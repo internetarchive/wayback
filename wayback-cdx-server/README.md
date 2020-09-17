@@ -350,7 +350,7 @@ a default non-paginated query.
 
 The cdx server is designed to improve access to archived data to a broad audience, but it may be necessary to restrict certain parts of the cdx.
 
-The cdx server provides greanting permissions to restricted data via an API key that is passed in as a cookie.
+The cdx server provides granting permissions to restricted data via an API key that is passed in as a cookie.
 
 Currently two restrictions/permission types are supported:
 

@@ -11,7 +11,7 @@
 
 ##### Table of Contents
 
-#### [Intro and Usage](#intro-and-usage)
+#### [Intro and Usage](#intro-and-usage-1)
 
 * [Changelist](#changelist)
 
@@ -29,14 +29,10 @@
 
 * [Query Result Limits](#query-result-limits)
 
-#### [Advanced Usage](#advanced-usage) 
+#### [Advanced Usage](#advanced-usage-1) 
 
-* [Closest Timestamp Match](#closest-timestamp-match)
+* [Resumption Key](#resumption-key)
 
-* [Resumption Key](#resumption)
-
-* [Resolve Revisits](#resolve-revisits)
-  
 * [Counters](#counters)
 
   * [Duplicate Counter](#duplicate-counter)

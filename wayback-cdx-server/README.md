@@ -72,7 +72,7 @@ Please contant us at wwm@archive.org for additional questions.
 
 The most simple query and the only required param for the CDX server is the **url** param
 
- * http://web.archive.org/cdx/search/cdx?url=archive.org
+ * http://web.archive.org/cdx/search/cdx?url=archive.org (Warning: as of 2018 clicking this will load many megabytes into your browser!)
 
 The above query will return a portion of the index, one per row, for each 'capture' of the url "archive.org"
 that is available in the archive.

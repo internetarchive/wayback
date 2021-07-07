@@ -50,6 +50,9 @@ public class DefaultReplayCaptureSelector implements ReplayCaptureSelector {
 
 	private CaptureSearchResult currentClosest;
 
+	public DefaultReplayCaptureSelector() {
+	}	
+	
 	/**
 	 * Initialize object with {@link ReplayDispatcher}, to which
 	 * closest-selection is delegated.
@@ -174,4 +177,12 @@ public class DefaultReplayCaptureSelector implements ReplayCaptureSelector {
 			return next;
 		}
 	}
+	
+	public CaptureSearchResult getCurrentClosest() {
+		return currentClosest;
+	}
+	
+	public long getRequestMS() {
+		return requestMS;
+	}	
 }
